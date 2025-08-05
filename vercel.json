@@ -1,0 +1,7 @@
+{
+  "env": {
+    "HCAPTCHA_SITE_KEY": "@hcaptcha-site-key",
+    "HCAPTCHA_SECRET_KEY": "@hcaptcha-secret-key",
+    "SUCCESS_REDIRECT_URL": "@success-redirect-url"
+  }
+}
