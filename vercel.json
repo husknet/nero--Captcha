@@ -1,4 +1,11 @@
 {
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
   "env": {
     "HCAPTCHA_SITE_KEY": "@hcaptcha-site-key",
     "HCAPTCHA_SECRET_KEY": "@hcaptcha-secret-key",
