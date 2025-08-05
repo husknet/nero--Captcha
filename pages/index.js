@@ -18,27 +18,46 @@ export default function Home() {
         body: JSON.stringify({ token }),
       });
 
+      // Check if response is OK (status 200-299)
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Server responded with ${response.status}`
+        );
+      }
+
       const data = await response.json();
       
       if (data.success && data.redirectUrl) {
         window.location.href = data.redirectUrl;
       } else {
         setError(data.message || 'Verification failed. Please try again.');
-        // Reset hCaptcha to allow retry
-        if (window.hcaptcha) {
-          window.hcaptcha.reset();
-        }
+        resetCaptcha();
       }
     } catch (err) {
       console.error('Verification error:', err);
-      setError('An error occurred during verification. Please try again.');
+      setError(
+        err.message.includes('405') 
+          ? 'Server configuration error. Please contact support.'
+          : 'An error occurred during verification. Please try again.'
+      );
+      resetCaptcha();
     } finally {
       setIsLoading(false);
     }
   };
 
+  const resetCaptcha = () => {
+    if (window.hcaptcha) {
+      try {
+        window.hcaptcha.reset();
+      } catch (resetError) {
+        console.error('Failed to reset hCaptcha:', resetError);
+      }
+    }
+  };
+
   useEffect(() => {
-    // Only load script if not already loaded
     if (window.hcaptcha) return;
 
     const script = document.createElement('script');
@@ -46,19 +65,31 @@ export default function Home() {
     script.async = true;
     script.defer = true;
     script.onload = () => {
-      window.hcaptcha.render('hcaptcha-container', {
-        sitekey: process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY,
-        callback: handleVerification
-      });
+      try {
+        window.hcaptcha.render('hcaptcha-container', {
+          sitekey: process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY,
+          callback: handleVerification,
+          'error-callback': () => {
+            setError('Captcha error occurred. Please try again.');
+          }
+        });
+      } catch (renderError) {
+        console.error('hCaptcha render error:', renderError);
+        setError('Failed to initialize captcha. Please refresh the page.');
+      }
     };
     script.onerror = () => {
-      setError('Failed to load hCaptcha. Please refresh the page.');
+      setError('Failed to load captcha service. Please refresh the page.');
     };
 
     document.body.appendChild(script);
 
     return () => {
-      document.body.removeChild(script);
+      try {
+        document.body.removeChild(script);
+      } catch (e) {
+        console.error('Error removing script:', e);
+      }
     };
   }, []);
 
@@ -110,6 +141,7 @@ export default function Home() {
           border-radius: 4px;
           background-color: #ffeeee;
           text-align: center;
+          max-width: 400px;
         }
         .loading-indicator {
           color: #666;
