@@ -1,0 +1,20 @@
+body {
+  background: #f8fafc;
+  font-family: system-ui, sans-serif;
+}
+
+.container {
+  max-width: 340px;
+  margin: 120px auto;
+  padding: 2rem;
+  border-radius: 1rem;
+  background: #f8fafc;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  text-align: center;
+}
+
+.captcha-widget {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
